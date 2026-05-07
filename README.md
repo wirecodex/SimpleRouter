@@ -316,7 +316,7 @@ simplerouter()->setNotFoundHandler(function() {
 // /site/templates/products.php
 namespace ProcessWire;
 
-route("get:detail/{id<integer>}", function($id) use ($page) {
+$page->route("get:detail/{id<integer>}", function($id) {
     $product = wire()->pages->get($id);
     if (!$product->id) throw new Wire404Exception();
     return $product->render();
@@ -345,7 +345,7 @@ simplerouter()->setNotFoundHandler(function() {
     return json_encode(['error' => 'Endpoint not found']);
 });
 
-route("get:products", function() {
+$page->route("get:products", function() {
     $pages = wire()->pages->find("template=product, limit=50");
     $data  = [];
     foreach ($pages as $p) {
@@ -355,7 +355,7 @@ route("get:products", function() {
     return json_encode($data);
 });
 
-route("get:products/{id<integer>}", function($id) {
+$page->route("get:products/{id<integer>}", function($id) {
     $product = wire()->pages->get($id);
     if (!$product->id) {
         http_response_code(404);
@@ -366,7 +366,7 @@ route("get:products/{id<integer>}", function($id) {
     return json_encode(['id' => $product->id, 'title' => $product->title]);
 });
 
-route("post:products", function() {
+$page->route("post:products", function() {
     $body = json_decode(file_get_contents('php://input'), true);
     // ... create product
     http_response_code(201);
@@ -416,7 +416,7 @@ Cache files are verified with a SHA1 hash file alongside them. A mismatch or exp
 namespace ProcessWire;
 
 // Category listing
-route("get:category/{name<slug>}", function($name) {
+$page->route("get:category/{name<slug>}", function($name) {
     $products = wire()->pages->find("template=product, category.name=$name, limit=24");
     if (!$products->count()) throw new Wire404Exception();
     return wire()->files->render(wire()->config->paths->templates . 'partials/product-list.php', [
@@ -426,7 +426,7 @@ route("get:category/{name<slug>}", function($name) {
 });
 
 // Product detail by integer ID
-route("get:detail/{id<integer>}", function($id) {
+$page->route("get:detail/{id<integer>}", function($id) {
     $product = wire()->pages->get("id=$id, template=product");
     if (!$product->id) throw new Wire404Exception();
     return wire()->files->render(wire()->config->paths->templates . 'partials/product-detail.php', [
@@ -435,7 +435,7 @@ route("get:detail/{id<integer>}", function($id) {
 });
 
 // Product search via POST
-route("post:search", function() {
+$page->route("post:search", function() {
     $q       = wire()->sanitizer->text(wire()->input->post('q'));
     $results = wire()->pages->find("template=product, title~=$q, limit=20");
     header('Content-Type: application/json');
@@ -471,7 +471,7 @@ simplerouter()->setNotFoundHandler(function() {
 });
 
 // GET /api/users
-route("get:users", function() {
+$page->route("get:users", function() {
     $users = wire()->users->find("roles=member, limit=50");
     $data  = [];
     foreach ($users as $u) {
@@ -482,7 +482,7 @@ route("get:users", function() {
 });
 
 // GET /api/users/42
-route("get:users/{id<integer>}", function($id) {
+$page->route("get:users/{id<integer>}", function($id) {
     $user = wire()->users->get((int)$id);
     if (!$user->id) {
         http_response_code(404);
@@ -494,7 +494,7 @@ route("get:users/{id<integer>}", function($id) {
 });
 
 // POST /api/users  (JSON body: {"name":"...", "email":"..."})
-route("post:users", function() {
+$page->route("post:users", function() {
     $san  = wire()->sanitizer;
     $body = json_decode(file_get_contents('php://input'), true) ?? [];
     $name  = $san->pageName($body['name'] ?? '');
@@ -518,7 +518,7 @@ route("post:users", function() {
 });
 
 // DELETE /api/users/42
-route("delete:users/{id<integer>}", function($id) {
+$page->route("delete:users/{id<integer>}", function($id) {
     $user = wire()->users->get((int)$id);
     if (!$user->id) {
         http_response_code(404);
@@ -543,7 +543,7 @@ echo $result;
 namespace ProcessWire;
 
 // All posts, or filtered by year, or by year+month
-route("get:archive/[{year<year>}]/[{month<month>}]", function($year = null, $month = null) {
+$page->route("get:archive/[{year<year>}]/[{month<month>}]", function($year = null, $month = null) {
     $selector = 'template=post, limit=20, sort=-date';
     if ($year)  $selector .= ", date>={$year}-01-01, date<=" . ($year + 1) . "-01-01";
     if ($month) $selector .= ", date>={$year}-{$month}-01";
@@ -557,7 +557,7 @@ route("get:archive/[{year<year>}]/[{month<month>}]", function($year = null, $mon
 });
 
 // Post by slug
-route("get:{slug<slug>}", function($slug) {
+$page->route("get:{slug<slug>}", function($slug) {
     $post = wire()->pages->get("template=post, name=$slug");
     if (!$post->id) throw new Wire404Exception();
     return $post->render();
@@ -578,7 +578,7 @@ if ($result !== null) {
 // /site/templates/files.php
 namespace ProcessWire;
 
-route("get:download/{*}", function($tail) {
+$page->route("get:download/{*}", function($tail) {
     // GET /download/docs/2024/annual-report.pdf
     // $tail = ['docs', '2024', 'annual-report.pdf']
     $relative = implode('/', array_map('rawurldecode', $tail));
